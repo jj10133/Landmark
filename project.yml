@@ -1,0 +1,59 @@
+name: App
+include:
+  - app/addons/addons.yml
+
+packages:
+  BareKit:
+    url: https://github.com/holepunchto/bare-kit-swift
+    branch: main
+
+
+targets:
+  App:
+    type: application
+    platform: macOS
+    deploymentTarget: 26.0
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: to.holepunch.bare.ios
+        SWIFT_VERSION: 5.0
+        CODE_SIGN_STYLE: Automatic
+    info:
+      path: app/Info.plist
+
+    dependencies:
+      - framework: app/frameworks/BareKit.framework
+
+    sources:
+      - path: app/App.swift
+      - path: app/app.js
+      - path: app/app.bundle
+      - path: app/briding-header.h
+      - path: app/IPC.swift
+      - path: app/Worklet.swift
+
+      - path: app/Core/Scheme.swift
+        group: app/Core
+
+      - path: app/Core/Home/HomeView.swift
+        group: app/Core/Home
+
+      - path: app/Core/Root/ContentView.swift
+        group: app/Core/Root
+        optional: true
+    scheme:
+      preActions:
+        - name: Link
+          script: |
+            PATH="${PATH}" "${PWD}/node_modules/.bin/bare-link" \
+              --preset darwin \
+              --out ${PWD}/app/addons \
+              ${PWD}
+        - name: Pack
+          script: |
+            PATH="${PATH}" "${PWD}/node_modules/.bin/bare-pack" \
+              --preset darwin \
+              --linked \
+              --base ${PWD} \
+              --out ${PWD}/app/app.bundle \
+            ${PWD}/app/app.js
